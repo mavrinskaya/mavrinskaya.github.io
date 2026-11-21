@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-ru="Елизавета Мавринская — звук для игр и кино" data-en="Elizaveta Mavrinskaya — sound for games and film">Елизавета Мавринская — звук для игр и кино</title>
+<link rel="icon" href="media/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="media/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="media/icon-180.png">
+<meta name="description" content="Музыка и звук для игр, кино и рекламы: от партитуры до интеграции в движок. FMOD, Wwise, Unity. Москва.">
+<style>
+  :root{
+    --paper:#EFEEEA;
+    --accent:#2A2AD2;
+    --text:#17171B;
+    --muted:#6E6E78;
+    --chip:#E3E2DC;
+    --line:#CBCAC3;
+  }
+  /* Одна колонка-лента по центру. Ширину держим в узде: моноширинный
+     текст во всю ширину экрана читать невозможно. */
+  :root{--feed:700px}
+  *{box-sizing:border-box}
+  /* Фон статикой вместо WebGL: двухцветный растр 1800 px, 132 КБ.
+     Кладём слоями на html — псевдоэлемент с z-index:-1 уезжает за фон body. */
+  /* Бумага и точечные каракули. Контуры нарисованы рядами Фурье
+     и выложены точками — 205 КБ, никакого WebGL. */
+  html{min-height:100%;margin:0;scroll-behavior:smooth;
+       background:
+         linear-gradient(rgba(239,238,234,.30), rgba(239,238,234,.30)),
+         url(media/bg.png) center / cover no-repeat,
+         var(--paper);
+       background-attachment:fixed;}
+  body{min-height:100%;margin:0;background:transparent}
+  body{
+    color:var(--text);
+    font:13px/1.35 "SF Mono","Menlo","Consolas","Liberation Mono",monospace;
+    letter-spacing:.02em;
+    text-transform:uppercase;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* z-index:auto намеренно: контекст наложения здесь отрезал бы
+     mix-blend-mode от канваса и убил свечение текста */
+  .ui{position:relative;max-width:var(--feed);margin:0 auto;padding:40px 24px 96px;pointer-events:auto}
+
+  /* ---------- имя ---------- */
+  .brand{position:relative;margin:0 0 30px;display:flex;flex-direction:row;gap:14px;align-items:flex-start}
+  .brand svg{display:block;flex:none}
+  /* скат: знак шире, чем высок — поднимаем к верхней строке имени */
+  .brand .mark{color:var(--text);margin-top:-3px}
+  .brand .name{font-size:20px;color:var(--text);line-height:1}
+  .brand .sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+  /* ---------- счётчик ---------- */
+
+  /* ---------- язык ---------- */
+  .lang{position:fixed;top:22px;right:22px;z-index:3;display:flex;gap:6px;pointer-events:auto}
+  .lang button{background:var(--chip);border:0;color:var(--text);font:inherit;font-size:11px;letter-spacing:.02em;
+               padding:5px 9px;cursor:pointer;text-transform:uppercase}
+  .lang button.on{background:var(--text);color:var(--paper)}
+
+  /* ---------- фильтры ---------- */
+  .tags{position:relative;width:auto;margin:0 0 28px;display:flex;flex-wrap:wrap;gap:6px;
+        pointer-events:auto}
+  .chip{background:var(--chip);border:0;padding:5px 9px;font:inherit;font-size:11px;color:var(--text);
+        cursor:pointer;letter-spacing:.02em;text-transform:uppercase;transition:opacity .15s}
+  .chip:hover{opacity:.72}
+  .chip--link{text-decoration:none;display:inline-block;line-height:1.25}
+  #about,#connect{scroll-margin-top:28px}
+  .chip.is-active{background:var(--text);color:var(--paper)}
+
+  /* ---------- список работ ---------- */
+  .list{position:relative;width:auto;pointer-events:auto}
+  .list::-webkit-scrollbar{display:none}
+  .card{padding:18px 0;border-top:1px solid var(--line);display:block;color:inherit;text-decoration:none}
+  .card[hidden]{display:none}
+  .thumb{height:auto;aspect-ratio:16 / 9;border-radius:2px;background:#DCDBD5;border:1px solid var(--line);overflow:hidden;mix-blend-mode:normal;position:relative}
+  .thumb video,.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb img{filter:grayscale(1) contrast(.96) brightness(1.04)}
+  .thumb .slot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+               font-size:11px;color:var(--paper);background:rgba(23,23,27,.78);letter-spacing:.06em}
+  a.card:hover .thumb img{filter:grayscale(1) contrast(1.04) brightness(1.12)}
+  .meta{display:flex;justify-content:space-between;gap:16px;margin-top:10px;font-size:12px}
+  .meta span{white-space:pre-line}
+  .meta .l{color:var(--text)}
+  .meta .r{color:var(--muted);text-align:right}
+  /* Карточка без превью: по хоррор-проекту показывать публично нечего,
+     остаётся одно описание. */
+  .card.text-only{padding:22px 0}
+  .card.text-only .meta{margin-top:0}
+  /* Второе слово в подписи — мельче заголовка: «Redesign», «Rescoring» и т.п. */
+  .meta .l .t{display:block}
+  .meta .l .k{display:block;font-size:10px;letter-spacing:.06em;color:var(--muted);margin-top:3px}
+  /* Плашка «will be fixed and added soon» — без ч/б фильтра и без полей. */
+  /* Карточка с видео на Vimeo: подсказка и курсор, пока плеер не открыт. */
+  .thumb.is-playable{cursor:pointer}
+  .thumb.is-playable::after{content:"PLAY";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    font-size:10px;letter-spacing:.14em;padding:7px 14px;pointer-events:none;
+    background:rgba(23,23,27,.78);color:#EFEEEA}
+  .thumb.is-playable[data-open]::after{content:none}
+  /* Заглушка не чернится: ни в покое, ни под курсором —
+     иначе синий блок у ссылочных карточек становится чёрным. */
+  .thumb--slot img,a.card:hover .thumb--slot img{filter:none}
+  .list-end{padding:22px 0 40px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+
+  /* ---------- текстовая колонка ---------- */
+  .about{position:relative;width:auto;margin:64px 0 0;pointer-events:auto}
+  /* Строка текста длиннее ~70 знаков моноширинным не читается. */
+  .about p,.about ul{max-width:72ch}
+  .about::-webkit-scrollbar{display:none}
+  .about .block{margin-bottom:2.2em}
+  .about .block:last-child{margin-bottom:0}
+  .about h2{font-size:13px;font-weight:400;color:var(--accent);margin:0 0 1em}
+  .about p{margin:0 0 1em;text-align:justify}
+  .about p:last-child{margin-bottom:0}
+  .about ul{list-style:inside;margin:0;padding:0}
+  .about li{margin:0 0 .35em}
+  .about a{
+    display:block;color:var(--text);text-decoration:underline;margin:4px 0;
+    pointer-events:auto;opacity:1;transition:opacity .3s ease;
+  }
+  .about a:hover{opacity:.7}
+  /* Портрет в колонке и длинные строки опыта. */
+  /* Портрет — той же плашкой, что и превью работ: вся ширина колонки, 16:9. */
+  .about .photo{display:block;width:100%;max-width:220px;aspect-ratio:4 / 3;height:auto;object-fit:cover;margin:1.2em 0 0}
+  .about .rows li{margin:0 0 .9em}
+  .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#1F9D55;margin-right:7px;vertical-align:middle}
+
+  /* ---------- адаптив ---------- */
+  /* На телефоне список работ НЕ прячется: портфолио, в котором с телефона
+     не видно ни одной работы, свою задачу не выполняет. Вместо этого
+     весь UI-слой становится прокручиваемым, а шапка остаётся на месте. */
+
+  /* ---------- ноутбук ----------
+     Лента остаётся одной колонкой, но на большом экране расширяется:
+     превью крупнее, текст по-прежнему в пределах читаемой строки. */
+  @media (min-width:1100px){
+    :root{--feed:860px}
+    .ui{padding:48px 24px 110px}
+    .about{margin-top:72px}
+  }
+  /* Два видео в ряд. Чтобы от этого карточки не измельчали, лента
+     расширяется почти во всю ширину окна, а текст остаётся в своей мере. */
+  @media (min-width:1400px){
+    .ui{max-width:min(1700px, 94vw);padding:48px 28px 120px}
+    .list{display:grid;grid-template-columns:repeat(2,1fr);gap:44px 28px}
+    .list-end{grid-column:1 / -1}
+    .brand,.tags,.about{max-width:1040px}
+    body{font-size:15px}
+    .brand .mark{width:82px;height:48.5px}
+    .brand .name{font-size:24px}
+    .brand .sub{font-size:13px}
+    .chip{font-size:13px;padding:7px 12px}
+    .meta{font-size:14px}
+    .meta .l .k{font-size:12px}
+    .about h2{font-size:15px}
+    .list-end{font-size:13px}
+  }
+  @media (min-width:1850px){
+    body{font-size:16px}
+    .brand .mark{width:94px;height:55.6px}
+    .brand .name{font-size:28px}
+    .brand .sub{font-size:14px}
+    .chip{font-size:14px;padding:8px 13px}
+    .meta{font-size:15px}
+    .meta .l .k{font-size:13px}
+    .about h2{font-size:16px}
+  }
+  @media (max-width:760px){
+    html{background:
+      linear-gradient(rgba(239,238,234,.72), rgba(239,238,234,.72)),
+      url(media/bg.png) center / cover no-repeat, var(--paper);
+      background-attachment:fixed}
+    .ui{padding:28px 20px 72px}
+    .lang{top:16px;right:16px}
+    /* Имя целиком длиннее, чем телефон: ужимаем знак и кегль. */
+    .brand{max-width:calc(100vw - 110px)}
+    .brand .mark{width:46px;height:27.2px}
+    .brand .name{font-size:15px}
+    .brand .sub{font-size:10px}
+    .about p{text-align:left}
+  }
+</style>
+</head>
+<body>
+
+
+<div class="ui">
+
+  <div class="brand">
+    <svg class="mark" width="70" height="41.4" viewBox="0 0 120 71" aria-hidden="true">
+      <path fill="currentColor" fill-rule="evenodd" d="M59.19 0.7 C66.84 0.15 74.39 5.41 80.27 9.68 C86.72 14.36 93.67 18.74 101.26 21.27 C108.15 23.56 118.12 25.76 119.06 34.54 C120 43.35 110.25 47.5 103.35 49.47 C95.94 51.59 88.71 54.92 82.36 59.3 C75.99 63.7 69.32 69.5 61.28 70.17 C53.14 70.85 46.43 66.39 40.2 61.72 C33.57 56.74 27.02 51.54 19.2 48.56 C12.34 45.95 2.5 43.86 1.27 35.21 C0 26.35 10.56 22.47 17.11 20.29 C24.74 17.74 31.47 14.21 38.11 9.63 C44.71 5.07 51.06 1.28 59.19 0.7 Z M58.27 4.97 C64.68 4.43 70.77 8.08 76 11.39 C81.79 15.04 87.52 18.96 93.65 22.03 C98.7 24.56 108.27 26.93 109.75 33.12 C111.47 40.37 102.49 44.33 97.16 46.61 C90.96 49.27 85.05 52.48 79.43 56.22 C74.13 59.75 68.18 64.65 61.7 65.58 C54.92 66.55 49.36 62.1 44.05 58.56 C38.18 54.66 32.61 50.53 26.31 47.31 C21.41 44.79 11.65 42.27 10.3 36.3 C8.61 28.81 17.58 25.12 22.88 22.53 C28.98 19.56 34.76 16.18 40.53 12.6 C45.94 9.26 51.8 5.51 58.27 4.97 Z M58.85 14.34 C63.65 13.71 67.39 19.32 70.73 21.95 C73.22 23.9 76.05 25.5 78.85 26.97 C84.58 29.97 90.74 31.17 96.83 33.12 C97.37 33.29 98.51 33.51 98.57 34.21 C98.8 36.7 87.69 36.83 78.85 41.14 C74.18 43.42 69.83 46.63 66.3 50.44 C64.65 52.21 62.33 56.7 60.36 57.67 C59.54 58.06 58.65 57.81 58.02 57.2 C56.65 55.89 55.88 54.01 54.72 52.53 C51.31 48.19 47.11 44.76 42.29 42.12 C39.34 40.5 36.19 39.08 32.92 38.26 C29.33 37.36 25.62 37.01 22.21 35.46 C21.74 35.25 20.51 34.86 20.88 34.13 C21.05 33.77 21.44 33.59 21.8 33.47 C27.49 31.44 33.31 30.22 38.86 27.71 C41.95 26.31 45.14 24.54 47.81 22.44 C51.09 19.86 54.5 14.91 58.85 14.34 Z M46.39 33.17 C46.84 32.91 48.56 33.16 49.07 33.3 C50.07 33.58 50.98 34.08 51.74 34.8 C52.06 35.09 53.92 37 53.16 37.26 C52.73 37.4 50.97 37.15 50.49 37.03 C49.47 36.77 48.61 36.24 47.81 35.56 C47.4 35.21 45.66 33.58 46.39 33.17 Z M71.07 33.16 C72.1 33.05 73.25 32.95 72.27 34.21 C71.6 35.08 70.77 35.9 69.81 36.44 C68.99 36.92 68.08 37.17 67.13 37.28 C65.88 37.43 65.16 37.44 66.12 36.13 C66.78 35.24 67.49 34.47 68.47 33.92 C69.28 33.47 70.15 33.26 71.07 33.16 Z"/>
+    </svg>
+    <div>
+      <div class="name" data-ru="ЕЛИЗАВЕТА МАВРИНСКАЯ" data-en="ELIZAVETA MAVRINSKAYA">ЕЛИЗАВЕТА МАВРИНСКАЯ</div>
+      <div class="sub" data-ru="Саунд-дизайнер · композитор · звукорежиссёр" data-en="Sound designer · composer · audio engineer">Саунд-дизайнер · композитор · звукорежиссёр</div>
+    </div>
+  </div>
+
+  <div class="lang" role="group" aria-label="Язык">
+    <button type="button" data-lang="ru" class="on">RU</button>
+    <button type="button" data-lang="en">EN</button>
+  </div>
+
+  <div class="tags" id="tags">
+    <button class="chip is-active" data-f="all" data-ru="ВСЁ" data-en="ALL">ВСЁ</button>
+    <button class="chip" data-f="games" data-ru="ИГРЫ" data-en="GAMES">ИГРЫ</button>
+    <button class="chip" data-f="film" data-ru="КИНО" data-en="FILM">КИНО</button>
+    <button class="chip" data-f="music" data-ru="МУЗЫКА" data-en="MUSIC">МУЗЫКА</button>
+    <button class="chip" data-f="sfx" data-ru="SOUND DESIGN" data-en="SOUND DESIGN">SOUND DESIGN</button>
+    <button class="chip" data-f="ad" data-ru="РЕКЛАМА" data-en="ADVERTISING">РЕКЛАМА</button>
+    <a class="chip chip--link" href="#about" data-ru="ОБО МНЕ" data-en="ABOUT">ОБО МНЕ</a>
+    <a class="chip chip--link" href="#connect" data-ru="СВЯЗАТЬСЯ" data-en="CONNECT">СВЯЗАТЬСЯ</a>
+  </div>
+
+  <div class="list" id="list">
+
+    <div class="card" data-tags="sfx" data-vimeo="1248973217" data-ratio="1.778">
+      <div class="thumb"><video src="media/v/3d-animation.mp4" autoplay muted loop playsinline preload="metadata"></video></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="3D Animation" data-en="3D Animation">3D Animation</span><span class="k" data-ru="Sound Design" data-en="Sound Design">Sound Design</span></span></div>
+    </div>
+
+    <div class="card" data-tags="sfx" data-vimeo="1248973209" data-ratio="2.347">
+      <div class="thumb"><video src="media/v/arcane-redesign.mp4" autoplay muted loop playsinline preload="metadata"></video></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Arcane" data-en="Arcane">Arcane</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span></div>
+    </div>
+
+    <div class="card" data-tags="games sfx">
+      <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="The Last Of Us · сцена" data-en="The Last Of Us · scene">The Last Of Us · сцена</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+    </div>
+
+    <div class="card" data-tags="games fmod unity sfx" data-vimeo="1248976264" data-ratio="1.778">
+      <div class="thumb"><video src="media/v/unity-fmod.mp4" autoplay muted loop playsinline preload="metadata"></video></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Игровой прототип Unity + FMOD" data-en="Unity + FMOD game prototype">Игровой прототип Unity + FMOD</span><span class="k" data-ru="Курсовая XSSR Academy" data-en="XSSR Academy coursework">Курсовая XSSR Academy</span></span></div>
+    </div>
+
+    <div class="card" data-tags="film sfx" data-vimeo="1248973210" data-ratio="1.779">
+      <div class="thumb"><video src="media/v/terminator-trailer.mp4" autoplay muted loop playsinline preload="metadata"></video></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="«Terminator» Trailer" data-en="«Terminator» Trailer">«Terminator» Trailer</span><span class="k" data-ru="Rescoring" data-en="Rescoring">Rescoring</span></span></div>
+    </div>
+
+    <div class="card" data-tags="music" data-vimeo="1248973504" data-ratio="1 / 1">
+      <div class="thumb"><video src="media/v/bhsad-fashion.mp4" autoplay muted loop playsinline preload="metadata"></video></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Музыка для fashion-шоу" data-en="Music for a fashion show">Музыка для fashion-шоу</span><span class="k" data-ru="БВШД" data-en="BHSAD">БВШД</span></span></div>
+    </div>
+
+    <div class="card" data-tags="film sfx mix" data-vimeo="1248973234" data-ratio="1.778">
+      <div class="thumb"><video src="media/v/documentary.mp4" autoplay muted loop playsinline preload="metadata"></video></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Documentary Film" data-en="Documentary Film">Documentary Film</span><span class="k" data-ru="Sound Design" data-en="Sound Design">Sound Design</span></span></div>
+    </div>
+
+    <div class="card" data-tags="film sfx" data-vimeo="1248973365" data-ratio="1.778">
+      <div class="thumb"><video src="media/v/thriller-short.mp4" autoplay muted loop playsinline preload="metadata"></video></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Thriller Short Film" data-en="Thriller Short Film">Thriller Short Film</span><span class="k" data-ru="Score &amp; Sound" data-en="Score &amp; Sound">Score &amp; Sound</span></span></div>
+    </div>
+
+    <div class="card" data-tags="film music sfx" data-vimeo="1248973231" data-ratio="1.827">
+      <div class="thumb"><video src="media/v/arcane-rescoring.mp4" autoplay muted loop playsinline preload="metadata"></video></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Arcane" data-en="Arcane">Arcane</span><span class="k" data-ru="Rescoring" data-en="Rescoring">Rescoring</span></span></div>
+    </div>
+
+    <div class="card" data-tags="ad sfx" data-vimeo="1248973211" data-ratio="1.778">
+      <div class="thumb"><video src="media/v/amex-commercial.mp4" autoplay muted loop playsinline preload="metadata"></video></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="AmEx Commercial" data-en="AmEx Commercial">AmEx Commercial</span><span class="k" data-ru="Rescoring" data-en="Rescoring">Rescoring</span></span></div>
+    </div>
+
+    <a class="card" href="https://youtu.be/xR7pNjuKZ7Q" target="_blank" rel="noopener" data-tags="music mix">
+      <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="«Girls after 2 am»" data-en="«Girls after 2 am»">«Girls after 2 am»</span><span class="k" data-ru="Соавторство · продакшн" data-en="Co-writing · production">Соавторство · продакшн</span></span></div>
+    </a>
+
+    <div class="card" data-tags="ad sfx">
+      <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Dropbox Animation" data-en="Dropbox Animation">Dropbox Animation</span><span class="k" data-ru="Sound Redesign" data-en="Sound Redesign">Sound Redesign</span></span></div>
+    </div>
+
+    <div class="card" data-tags="ad sfx">
+      <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Nike Ad" data-en="Nike Ad">Nike Ad</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+    </div>
+
+    <div class="card" data-tags="games sfx">
+      <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Unravel Two Trailer" data-en="Unravel Two Trailer">Unravel Two Trailer</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+    </div>
+
+    <div class="card" data-tags="ad sfx">
+      <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="SPEC Commercial" data-en="SPEC Commercial">SPEC Commercial</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+    </div>
+
+    <div class="card" data-tags="games sfx">
+      <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="The Last Of Us · оружие" data-en="The Last Of Us · weapons">The Last Of Us · оружие</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+    </div>
+
+    <div class="card" data-tags="games unity sfx">
+      <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Wwise + Unity Racing Game" data-en="Wwise + Unity Racing Game">Wwise + Unity Racing Game</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+    </div>
+
+    <div class="list-end" id="listEnd"></div>
+  </div>
+
+  <div class="about">
+    <div class="block" id="about">
+      <h2 data-ru="[обо мне]" data-en="[about]">[обо мне]</h2>
+      <p data-ru="Привет! Меня зовут Елизавета. Я композитор, саунд-дизайнер и звукорежиссёр из Москвы. Пишу музыку и создаю звук для игр и кино, свожу, работаю с живым звуком и записью на студии. Давайте знакомиться!"
+         data-en="Hi! My name is Elizaveta. I’m a composer, sound designer and audio engineer based in Moscow. I write music and build sound for games and film, mix, and work with live sound and studio recording. Let’s get in touch!">Привет! Меня зовут Елизавета. Я композитор, саунд-дизайнер и звукорежиссёр из Москвы. Пишу музыку и создаю звук для игр и кино, свожу, работаю с живым звуком и записью на студии. Давайте знакомиться!</p>
+      <img class="photo" src="media/portrait.jpg?v=2" alt="" loading="lazy" width="880" height="660">
+    </div>
+    <div class="block">
+      <h2 data-ru="[что делаю]" data-en="[what i do]">[что делаю]</h2>
+      <p data-ru="Собираю аудиосистемы в FMOD и Wwise и интегрирую их в Unity."
+         data-en="I build audio systems in FMOD and Wwise and integrate them into Unity.">Собираю аудиосистемы в FMOD и Wwise и интегрирую их в Unity.</p>
+      <p data-ru="Музыка и линейный саунд-дизайн"
+         data-en="Music and linear sound design">Музыка и линейный саунд-дизайн</p>
+      <p data-ru="Студийная запись, сведение и мастеринг."
+         data-en="Studio recording, mixing and mastering.">Студийная запись, сведение и мастеринг.</p>
+    </div>
+    <div class="block">
+      <h2 data-ru="[опыт]" data-en="[experience]">[опыт]</h2>
+      <ul class="rows">
+        <li data-ru="Окт. 2025 — сейчас · саунд-дизайнер и композитор · инди-игра в жанре survival horror"
+            data-en="Oct 2025 — now · sound designer and composer · indie survival horror game">Окт. 2025 — сейчас · саунд-дизайнер и композитор · инди-игра в жанре survival horror</li>
+        <li data-ru="Сен. 2025 — сен. 2026 · звукорежиссёр, FOH · «Голоса большой страны»: обработка, сведение и мастеринг, техника на мероприятиях, студийная запись. Клиенты — крупные медиахолдинги и артисты класса A"
+            data-en="Sep 2025 — Sep 2026 · audio engineer, FOH · «Golosa Bolshoy Strany»: editing, mixing and mastering, event rigs, studio recording. Clients — major media holdings and A-list artists">Сен. 2025 — сен. 2026 · звукорежиссёр, FOH · «Голоса большой страны»: обработка, сведение и мастеринг, техника на мероприятиях, студийная запись. Клиенты — крупные медиахолдинги и артисты класса A</li>
+        <li data-ru="Янв. 2026 — июл. 2026 · AI-дубляж · нейросетевой дубляж реалити-шоу, более 1 млн просмотров на YouTube"
+            data-en="Jan 2026 — Jul 2026 · AI dubbing · neural dubbing of a reality show, over 1M views on YouTube">Янв. 2026 — июл. 2026 · AI-дубляж · нейросетевой дубляж реалити-шоу, более 1 млн просмотров на YouTube</li>
+        <li data-ru="Ноя. 2025 — янв. 2026 · композитор · к/м «Aura»: музыка и саунд-дизайн, сведение и мастеринг. Финалист фестиваля «Святая Анна», в отборе на кинофестивали"
+            data-en="Nov 2025 — Jan 2026 · composer · short film «Aura»: score and sound design, mix and master. Finalist of the Svyataya Anna festival, in selection at film festivals">Ноя. 2025 — янв. 2026 · композитор · к/м «Aura»: музыка и саунд-дизайн, сведение и мастеринг. Финалист фестиваля «Святая Анна», в отборе на кинофестивали</li>
+        <li data-ru="Сен. 2021 — фев. 2025 · композитор · Universal University: музыка для fashion-шоу Британской высшей школы дизайна"
+            data-en="Sep 2021 — Feb 2025 · composer · Universal University: music for BHSAD fashion shows">Сен. 2021 — фев. 2025 · композитор · Universal University: музыка для fashion-шоу Британской высшей школы дизайна</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h2 data-ru="[образование]" data-en="[education]">[образование]</h2>
+      <ul class="rows">
+        <li data-ru="2025 · бакалавр — Moscow Music School / Universal University: музыкознание и музыкально-прикладное искусство, компьютерная музыка и аранжировка, звукорежиссура"
+            data-en="2025 · BA — Moscow Music School / Universal University: musicology and applied music, computer music and arrangement, sound engineering">2025 · бакалавр — Moscow Music School / Universal University: музыкознание и музыкально-прикладное искусство, компьютерная музыка и аранжировка, звукорежиссура</li>
+        <li data-ru="2019 · начальное музыкальное образование — класс фортепиано, ДШИ, Москва"
+            data-en="2019 · music school — piano class, Moscow">2019 · начальное музыкальное образование — класс фортепиано, ДШИ, Москва</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h2 data-ru="[курсы]" data-en="[courses]">[курсы]</h2>
+      <ul class="rows">
+        <li data-ru="2026 · интерактивный звук и аудиодвижки — XSSR Academy: Unity, FMOD, Wwise"
+            data-en="2026 · interactive audio and audio engines — XSSR Academy: Unity, FMOD, Wwise">2026 · интерактивный звук и аудиодвижки — XSSR Academy: Unity, FMOD, Wwise</li>
+        <li data-ru="2026 · Production Workshop with Sega Bodega — School of Song"
+            data-en="2026 · Production Workshop with Sega Bodega — School of Song">2026 · Production Workshop with Sega Bodega — School of Song</li>
+        <li data-ru="2024 · UCLA Songwriting Camp — сонграйтинг, продакшн"
+            data-en="2024 · UCLA Songwriting Camp — songwriting, production">2024 · UCLA Songwriting Camp — сонграйтинг, продакшн</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h2 data-ru="[навыки]" data-en="[skills]">[навыки]</h2>
+      <p data-ru="Композиция и продакшн · аранжировка · саунд-дизайн · сведение · мастеринг · запись · музыкальная теория · синтез · полевая запись"
+         data-en="Composition and production · arrangement · sound design · mixing · mastering · recording · music theory · synthesis · field recording">Композиция и продакшн · аранжировка · саунд-дизайн · сведение · мастеринг · запись · музыкальная теория · синтез · полевая запись</p>
+    </div>
+    <div class="block">
+      <h2 data-ru="[программы]" data-en="[software]">[программы]</h2>
+      <p>Ableton Live · Logic Pro · Reaper · FMOD · Wwise · Unity · MuseScore · ElevenLabs · Adobe Premiere Pro</p>
+    </div>
+    <div class="block">
+      <h2 data-ru="[языки]" data-en="[languages]">[языки]</h2>
+      <p data-ru="Русский — родной · английский C1 · немецкий B1"
+         data-en="Russian — native · English C1 · German B1">Русский — родной · английский C1 · немецкий B1</p>
+    </div>
+    <div class="block" id="connect">
+      <h2 data-ru="[связаться]" data-en="[connect]">[связаться]</h2>
+      <a href="mailto:mavrinskayaliza@gmail.com">Mail -&gt; mavrinskayaliza@gmail.com</a>
+      <a href="https://t.me/exqtsd" target="_blank" rel="noopener">Telegram -&gt; @exqtsd</a>
+      <a href="media/cv-mavrinskaya.pdf" target="_blank" rel="noopener">CV</a>
+      <a href="https://www.kinopoisk.ru/name/10414798/" target="_blank" rel="noopener" data-ru="Кинопоиск" data-en="Kinopoisk">Кинопоиск</a>
+    </div>
+  </div>
+</div>
+
+<script src="ui.js?v=3"></script>
+</body>
+</html>
