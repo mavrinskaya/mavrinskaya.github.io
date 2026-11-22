@@ -31,7 +31,7 @@
      Safari на айфоне такой фон не прибивает, а растягивает на всю длину
      страницы, и точки расползаются до неразличимости. */
   body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-               background:linear-gradient(rgba(239,238,234,.30), rgba(239,238,234,.30)),
+               background:linear-gradient(rgba(239,238,234,.70), rgba(239,238,234,.70)),
                           url(media/bg.png) center / cover no-repeat}
   body{
     color:var(--text);
@@ -56,7 +56,13 @@
   /* ---------- счётчик ---------- */
 
   /* ---------- язык ---------- */
-  .lang{position:fixed;top:22px;right:22px;z-index:3;display:flex;gap:6px;pointer-events:auto}
+  /* Верхний угол: связаться и язык. Телеграм выделен акцентом —
+     это единственное действие на странице, остальное навигация. */
+  .topbar{position:fixed;top:22px;right:22px;z-index:3;display:flex;gap:10px;align-items:center;pointer-events:auto}
+  .lang{display:flex;gap:6px}
+  .tg{background:var(--accent);color:var(--paper);text-decoration:none;font-size:11px;
+      letter-spacing:.04em;padding:5px 10px;line-height:1.5;transition:opacity .15s}
+  .tg:hover{opacity:.78}
   .lang button{background:var(--chip);border:0;color:var(--text);font:inherit;font-size:11px;letter-spacing:.02em;
                padding:5px 9px;cursor:pointer;text-transform:uppercase}
   .lang button.on{background:var(--text);color:var(--paper)}
@@ -159,6 +165,7 @@
     .brand .name{font-size:24px}
     .brand .sub{font-size:13px}
     .chip{font-size:13px;padding:7px 12px}
+    .tg{font-size:13px;padding:6px 12px}
     .meta{font-size:14px}
     .meta .l .k{font-size:12px}
     .about h2{font-size:15px}
@@ -169,6 +176,7 @@
     .brand .name{font-size:28px}
     .brand .sub{font-size:14px}
     .chip{font-size:14px;padding:8px 13px}
+    .tg{font-size:14px;padding:7px 13px}
     .meta{font-size:15px}
     .meta .l .k{font-size:13px}
     .about h2{font-size:16px}
@@ -176,12 +184,13 @@
   @media (max-width:760px){
     /* На телефоне текст идёт во всю ширину, поэтому подложка плотнее —
        но не настолько, чтобы каракули исчезли. */
-    body::before{background:linear-gradient(rgba(239,238,234,.45), rgba(239,238,234,.45)),
+    body::before{background:linear-gradient(rgba(239,238,234,.80), rgba(239,238,234,.80)),
                             url(media/bg.png) center / cover no-repeat}
     .ui{padding:28px 20px 72px}
-    .lang{top:16px;right:16px}
+    .topbar{top:16px;right:16px;gap:8px}
+    .tg{font-size:10px;padding:4px 8px}
     /* Имя целиком длиннее, чем телефон: ужимаем знак и кегль. */
-    .brand{max-width:calc(100vw - 110px)}
+    .brand{max-width:calc(100vw - 185px)}
     .brand .mark{width:46px;height:27.2px}
     .brand .name{font-size:15px}
     .brand .sub{font-size:10px}
@@ -204,9 +213,12 @@
     </div>
   </div>
 
-  <div class="lang" role="group" aria-label="Язык">
-    <button type="button" data-lang="ru" class="on">RU</button>
-    <button type="button" data-lang="en">EN</button>
+  <div class="topbar">
+    <a class="tg" href="https://t.me/exqtsd" target="_blank" rel="noopener">Telegram</a>
+    <div class="lang" role="group" aria-label="Язык">
+      <button type="button" data-lang="ru" class="on">RU</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
   </div>
 
   <div class="tags" id="tags">
