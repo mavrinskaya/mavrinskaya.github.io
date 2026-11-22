@@ -34,7 +34,7 @@ let filter = 'all';
 function updateEnd() {
   const shown = cards.filter(c => !c.hidden).length;
   if (counter) counter.textContent = String(shown).padStart(2, '0');
-  listEnd.textContent = lang === 'en'
+  if (listEnd) listEnd.textContent = lang === 'en'
     ? shown + ' of ' + cards.length + ' shown'
     : 'показано ' + shown + ' из ' + cards.length;
 }
@@ -75,6 +75,13 @@ document.querySelectorAll('.card[data-vimeo]').forEach(card => {
       'style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>';
   });
 });
+
+/* ---------- фото в «обо мне» ----------
+   На тачскрине наведения нет, поэтому кадры переключаются по тапу. */
+const aboutPhoto = document.querySelector('.about .photo');
+if (aboutPhoto && window.matchMedia('(hover:none)').matches) {
+  aboutPhoto.addEventListener('click', () => aboutPhoto.classList.toggle('is-on'));
+}
 
 applyLang(lang);
 applyFilter('all');

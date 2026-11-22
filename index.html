@@ -102,7 +102,6 @@
   /* Заглушка не чернится: ни в покое, ни под курсором —
      иначе синий блок у ссылочных карточек становится чёрным. */
   .thumb--slot img,a.card:hover .thumb--slot img{filter:none}
-  .list-end{padding:22px 0 40px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
 
   /* ---------- текстовая колонка ---------- */
   .about{position:relative;width:auto;margin:64px 0 0;pointer-events:auto}
@@ -123,7 +122,15 @@
   .about a:hover{opacity:.7}
   /* Портрет в колонке и длинные строки опыта. */
   /* Портрет — той же плашкой, что и превью работ: вся ширина колонки, 16:9. */
-  .about .photo{display:block;width:100%;max-width:220px;aspect-ratio:4 / 3;height:auto;object-fit:cover;margin:1.2em 0 0}
+  /* Два кадра в одном месте: по наведению синий экран ошибки сменяется
+     живым снимком. Высота задана пропорцией — при загрузке ничего не прыгает. */
+  .about .photo{display:block;position:relative;width:100%;max-width:220px;aspect-ratio:4 / 3;
+                margin:1.2em 0 0;overflow:hidden}
+  .about .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .about .photo .hov{opacity:0;transition:opacity .22s ease}
+  .about .photo:hover .hov,.about .photo.is-on .hov{opacity:1}
+  /* На тачскрине наведения нет — кадры меняются по тапу. */
+  @media (hover:none){.about .photo{cursor:pointer}}
   .about .rows li{margin:0 0 .9em}
   .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#1F9D55;margin-right:7px;vertical-align:middle}
 
@@ -145,8 +152,7 @@
   @media (min-width:1400px){
     .ui{max-width:min(1700px, 94vw);padding:48px 28px 120px}
     .list{display:grid;grid-template-columns:repeat(2,1fr);gap:44px 28px}
-    .list-end{grid-column:1 / -1}
-    .brand,.tags,.about{max-width:1040px}
+      .brand,.tags,.about{max-width:1040px}
     body{font-size:15px}
     .brand .mark{width:82px;height:48.5px}
     .brand .name{font-size:24px}
@@ -155,8 +161,7 @@
     .meta{font-size:14px}
     .meta .l .k{font-size:12px}
     .about h2{font-size:15px}
-    .list-end{font-size:13px}
-  }
+    }
   @media (min-width:1850px){
     body{font-size:16px}
     .brand .mark{width:94px;height:55.6px}
@@ -228,7 +233,7 @@
 
     <div class="card" data-tags="games sfx">
       <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
-      <div class="meta"><span class="l"><span class="t" data-ru="The Last Of Us · сцена" data-en="The Last Of Us · scene">The Last Of Us · сцена</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="The Last Of Us · сцена" data-en="The Last Of Us · scene">The Last Of Us · сцена</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span></div>
     </div>
 
     <div class="card" data-tags="games fmod unity sfx" data-vimeo="1248976264" data-ratio="1.778">
@@ -278,30 +283,29 @@
 
     <div class="card" data-tags="ad sfx">
       <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
-      <div class="meta"><span class="l"><span class="t" data-ru="Nike Ad" data-en="Nike Ad">Nike Ad</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Nike Ad" data-en="Nike Ad">Nike Ad</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span></div>
     </div>
 
     <div class="card" data-tags="games sfx">
       <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
-      <div class="meta"><span class="l"><span class="t" data-ru="Unravel Two Trailer" data-en="Unravel Two Trailer">Unravel Two Trailer</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Unravel Two Trailer" data-en="Unravel Two Trailer">Unravel Two Trailer</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span></div>
     </div>
 
     <div class="card" data-tags="ad sfx">
       <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
-      <div class="meta"><span class="l"><span class="t" data-ru="SPEC Commercial" data-en="SPEC Commercial">SPEC Commercial</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="SPEC Commercial" data-en="SPEC Commercial">SPEC Commercial</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span></div>
     </div>
 
     <div class="card" data-tags="games sfx">
       <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
-      <div class="meta"><span class="l"><span class="t" data-ru="The Last Of Us · оружие" data-en="The Last Of Us · weapons">The Last Of Us · оружие</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="The Last Of Us · оружие" data-en="The Last Of Us · weapons">The Last Of Us · оружие</span><span class="k" data-ru="Redesign" data-en="Redesign">Redesign</span></span></div>
     </div>
 
     <div class="card" data-tags="games unity sfx">
       <div class="thumb thumb--slot"><img src="media/slot.jpg" alt="" loading="lazy"></div>
-      <div class="meta"><span class="l"><span class="t" data-ru="Wwise + Unity Racing Game" data-en="Wwise + Unity Racing Game">Wwise + Unity Racing Game</span></span><span class="r" data-ru="скоро" data-en="soon">скоро</span></div>
+      <div class="meta"><span class="l"><span class="t" data-ru="Wwise + Unity Racing Game" data-en="Wwise + Unity Racing Game">Wwise + Unity Racing Game</span></span></div>
     </div>
 
-    <div class="list-end" id="listEnd"></div>
   </div>
 
   <div class="about">
@@ -309,7 +313,10 @@
       <h2 data-ru="[обо мне]" data-en="[about]">[обо мне]</h2>
       <p data-ru="Привет! Меня зовут Елизавета. Я композитор, саунд-дизайнер и звукорежиссёр из Москвы. Пишу музыку и создаю звук для игр и кино, свожу, работаю с живым звуком и записью на студии. Давайте знакомиться!"
          data-en="Hi! My name is Elizaveta. I’m a composer, sound designer and audio engineer based in Moscow. I write music and build sound for games and film, mix, and work with live sound and studio recording. Let’s get in touch!">Привет! Меня зовут Елизавета. Я композитор, саунд-дизайнер и звукорежиссёр из Москвы. Пишу музыку и создаю звук для игр и кино, свожу, работаю с живым звуком и записью на студии. Давайте знакомиться!</p>
-      <img class="photo" src="media/portrait.jpg?v=2" alt="" loading="lazy" width="880" height="660">
+      <span class="photo">
+        <img src="media/about-1.jpg?v=13" alt="" loading="lazy" width="660" height="495">
+        <img class="hov" src="media/about-2.jpg?v=13" alt="" loading="lazy" width="660" height="495">
+      </span>
     </div>
     <div class="block">
       <h2 data-ru="[что делаю]" data-en="[what i do]">[что делаю]</h2>
@@ -323,8 +330,8 @@
     <div class="block">
       <h2 data-ru="[опыт]" data-en="[experience]">[опыт]</h2>
       <ul class="rows">
-        <li data-ru="Окт. 2025 — сейчас · саунд-дизайнер и композитор · инди-игра в жанре survival horror"
-            data-en="Oct 2025 — now · sound designer and composer · indie survival horror game">Окт. 2025 — сейчас · саунд-дизайнер и композитор · инди-игра в жанре survival horror</li>
+        <li data-ru="Окт. 2025 — янв. 2026 · саунд-дизайнер и композитор · инди-игра в жанре survival horror (проект на перезапуске)"
+            data-en="Oct 2025 — Jan 2026 · sound designer and composer · indie survival horror game (project is being relaunched)">Окт. 2025 — янв. 2026 · саунд-дизайнер и композитор · инди-игра в жанре survival horror (проект на перезапуске)</li>
         <li data-ru="Сен. 2025 — сен. 2026 · звукорежиссёр, FOH · «Голоса большой страны»: обработка, сведение и мастеринг, техника на мероприятиях, студийная запись. Клиенты — крупные медиахолдинги и артисты класса A"
             data-en="Sep 2025 — Sep 2026 · audio engineer, FOH · «Golosa Bolshoy Strany»: editing, mixing and mastering, event rigs, studio recording. Clients — major media holdings and A-list artists">Сен. 2025 — сен. 2026 · звукорежиссёр, FOH · «Голоса большой страны»: обработка, сведение и мастеринг, техника на мероприятиях, студийная запись. Клиенты — крупные медиахолдинги и артисты класса A</li>
         <li data-ru="Янв. 2026 — июл. 2026 · AI-дубляж · нейросетевой дубляж реалити-шоу, более 1 млн просмотров на YouTube"
@@ -373,12 +380,12 @@
       <h2 data-ru="[связаться]" data-en="[connect]">[связаться]</h2>
       <a href="mailto:mavrinskayaliza@gmail.com">Mail -&gt; mavrinskayaliza@gmail.com</a>
       <a href="https://t.me/exqtsd" target="_blank" rel="noopener">Telegram -&gt; @exqtsd</a>
-      <a href="media/cv-mavrinskaya.pdf?v=2" target="_blank" rel="noopener">CV</a>
+      <a href="media/cv-mavrinskaya.pdf?v=3" target="_blank" rel="noopener">CV</a>
       <a href="https://www.kinopoisk.ru/name/10414798/" target="_blank" rel="noopener" data-ru="Кинопоиск" data-en="Kinopoisk">Кинопоиск</a>
     </div>
   </div>
 </div>
 
-<script src="ui.js?v=3"></script>
+<script src="ui.js?v=5"></script>
 </body>
 </html>
