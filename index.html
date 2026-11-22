@@ -25,13 +25,14 @@
      Кладём слоями на html — псевдоэлемент с z-index:-1 уезжает за фон body. */
   /* Бумага и точечные каракули. Контуры нарисованы рядами Фурье
      и выложены точками — 205 КБ, никакого WebGL. */
-  html{min-height:100%;margin:0;scroll-behavior:smooth;
-       background:
-         linear-gradient(rgba(239,238,234,.30), rgba(239,238,234,.30)),
-         url(media/bg.png) center / cover no-repeat,
-         var(--paper);
-       background-attachment:fixed;}
+  html{min-height:100%;margin:0;scroll-behavior:smooth;background:var(--paper)}
   body{min-height:100%;margin:0;background:transparent}
+  /* Каракули держим закреплённым слоем, а не background-attachment:fixed —
+     Safari на айфоне такой фон не прибивает, а растягивает на всю длину
+     страницы, и точки расползаются до неразличимости. */
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+               background:linear-gradient(rgba(239,238,234,.30), rgba(239,238,234,.30)),
+                          url(media/bg.png) center / cover no-repeat}
   body{
     color:var(--text);
     font:13px/1.35 "SF Mono","Menlo","Consolas","Liberation Mono",monospace;
@@ -173,10 +174,10 @@
     .about h2{font-size:16px}
   }
   @media (max-width:760px){
-    html{background:
-      linear-gradient(rgba(239,238,234,.72), rgba(239,238,234,.72)),
-      url(media/bg.png) center / cover no-repeat, var(--paper);
-      background-attachment:fixed}
+    /* На телефоне текст идёт во всю ширину, поэтому подложка плотнее —
+       но не настолько, чтобы каракули исчезли. */
+    body::before{background:linear-gradient(rgba(239,238,234,.45), rgba(239,238,234,.45)),
+                            url(media/bg.png) center / cover no-repeat}
     .ui{padding:28px 20px 72px}
     .lang{top:16px;right:16px}
     /* Имя целиком длиннее, чем телефон: ужимаем знак и кегль. */
