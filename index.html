@@ -31,7 +31,9 @@
   /* Каракули держим закреплённым слоем, а не background-attachment:fixed —
      Safari на айфоне такой фон не прибивает, а растягивает на всю длину
      страницы, и точки расползаются до неразличимости. */
-  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  /* opacity крутит скрипт: каракули тают по мере прокрутки
+     и к блоку «обо мне» исчезают совсем. */
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:var(--bgfade,1);
                background:linear-gradient(rgba(239,238,234,.70), rgba(239,238,234,.70)),
                           url(media/bg.png) center / cover no-repeat}
   body{
@@ -419,6 +421,6 @@
   </div>
 </div>
 
-<script src="ui.js?v=5"></script>
+<script src="ui.js?v=7"></script>
 </body>
 </html>

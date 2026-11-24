@@ -30,6 +30,7 @@ const cards = [...list.querySelectorAll('.card')];
 const counter = document.getElementById('counter');
 const listEnd = document.getElementById('listEnd');
 let filter = 'all';
+let remeasureBg = () => {};
 
 function updateEnd() {
   const shown = cards.filter(c => !c.hidden).length;
@@ -51,6 +52,7 @@ function applyFilter(f) {
   document.querySelectorAll('.chip').forEach(ch => ch.classList.toggle('is-active', ch.dataset.f === f));
   list.scrollTop = 0;
   updateEnd();
+  remeasureBg();
 }
 document.getElementById('tags').addEventListener('click', e => {
   const chip = e.target.closest('.chip');
@@ -81,6 +83,38 @@ document.querySelectorAll('.card[data-vimeo]').forEach(card => {
 const aboutPhoto = document.querySelector('.about .photo');
 if (aboutPhoto && window.matchMedia('(hover:none)').matches) {
   aboutPhoto.addEventListener('click', () => aboutPhoto.classList.toggle('is-on'));
+}
+
+/* ---------- фон ----------
+   Каракули гаснут по мере прокрутки и к блоку «обо мне» исчезают.
+   Считаем долю пути до него и крутим прозрачность закреплённого слоя. */
+const aboutBlock = document.getElementById('about');
+if (aboutBlock) {
+  let fadeStart = 0, fadeEnd = 1;
+  const measure = () => {
+    const top = aboutBlock.getBoundingClientRect().top + window.scrollY;
+    /* гаснут не всю дорогу, а только на подходе: полный свет до последнего
+       экрана перед «обо мне», к самому блоку — ноль */
+    fadeEnd = Math.max(1, top - window.innerHeight * 0.45);
+    fadeStart = Math.max(0, fadeEnd - window.innerHeight * 0.8);
+  };
+  const paint = () => {
+    const span = Math.max(1, fadeEnd - fadeStart);
+    const v = Math.max(0, Math.min(1, 1 - (window.scrollY - fadeStart) / span));
+    document.body.style.setProperty('--bgfade', v.toFixed(3));
+  };
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { ticking = false; paint(); });
+  };
+  remeasureBg = () => { measure(); paint(); };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', remeasureBg);
+  /* картинки догружаются и меняют высоту страницы — пересчитываем */
+  window.addEventListener('load', remeasureBg);
+  remeasureBg();
 }
 
 applyLang(lang);
